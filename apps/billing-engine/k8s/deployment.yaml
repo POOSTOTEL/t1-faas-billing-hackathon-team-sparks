@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-engine
+  namespace: default
+  labels:
+    app: billing-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: billing-engine
+  template:
+    metadata:
+      labels:
+        app: billing-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: billing-engine-sa
+      containers:
+        - name: billing-engine
+          image: alexpoostotel/billing-engine:6
+          ports:
+            - containerPort: 8081
+          env:
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-operated.monitoring.svc.cluster.local:9090"
+            - name: JAVA_OPTS
+              value: "-Xmx256m -Xms128m"
+          livenessProbe:
+            httpGet:
+              path: /api/billing/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/billing/ready
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

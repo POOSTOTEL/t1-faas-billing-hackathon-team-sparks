@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-engine
+  namespace: default
+  labels:
+    app: billing-engine
+spec:
+  selector:
+    app: billing-engine
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8081
+      protocol: TCP
+  type: ClusterIP
