@@ -20,7 +20,6 @@ helm upgrade --install knative prometheus-community/kube-prometheus-stack \
 
 echo "Applying Knative Serving monitors and dashboards..."
 kubectl apply -f https://raw.githubusercontent.com/knative-extensions/monitoring/main/config/serving-monitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/knative-extensions/monitoring/main/config/serving-dashboard.yaml
 
 echo "Waiting for Prometheus and Grafana to become ready..."
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=prometheus -n observability --timeout=180s
