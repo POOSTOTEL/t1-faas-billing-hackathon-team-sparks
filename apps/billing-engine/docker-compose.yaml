@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  billing-db:
+    image: postgres:12
+    environment:
+      POSTGRES_DB: billing
+      POSTGRES_USER: billing
+      POSTGRES_PASSWORD: billing123
+    ports:
+      - "5432:5432"
+
+  billing-engine:
+    build: .
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://billing-db:5432/billing
+    depends_on:
+      - billing-db

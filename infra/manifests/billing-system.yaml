@@ -1,0 +1,122 @@
+---
+# PostgreSQL PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: billing-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-db
+  template:
+    metadata:
+      labels:
+        app: billing-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:12
+          env:
+            - name: POSTGRES_DB
+              value: "billing"
+            - name: POSTGRES_USER
+              value: "billing"
+            - name: POSTGRES_PASSWORD
+              value: "billing123"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: billing-db-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: billing-db-storage
+          persistentVolumeClaim:
+            claimName: billing-db-pvc
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-db
+spec:
+  selector:
+    app: billing-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+
+---
+# Billing Engine Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-engine
+  template:
+    metadata:
+      labels:
+        app: billing-engine
+    spec:
+      containers:
+        - name: billing-engine
+          image: alexpoostotel/billing-engine:v6
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://billing-db:5432/billing"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "billing"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "billing123"
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-operated.observability.svc:9090"
+          # Опционально: readiness/liveness probes
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+---
+# Billing Engine Service (для внутреннего доступа или ingress)
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-engine
+spec:
+  selector:
+    app: billing-engine
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+  type: ClusterIP  # или LoadBalancer/NodePort при необходимости

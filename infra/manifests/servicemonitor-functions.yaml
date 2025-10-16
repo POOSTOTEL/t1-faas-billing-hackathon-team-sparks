@@ -1,0 +1,19 @@
+# servicemonitor-functions.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: knative-user-functions
+  namespace: default  # Там где работают ваши функции
+  labels:
+    app: knative-user-functions
+spec:
+  selector:
+    matchLabels:
+      serving.knative.dev/service: ""  # Все Knative services
+  namespaceSelector:
+    matchNames:
+      - default  # Namespace где работают ваши функции
+  endpoints:
+    - port: http  # Knative использует порт http
+      interval: 30s
+      path: /metrics
