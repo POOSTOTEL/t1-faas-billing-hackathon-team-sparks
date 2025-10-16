@@ -1,0 +1,27 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+  meta
+name: billing-frontend
+namespace: default
+spec:
+  template:
+    metadata:
+    annotations:
+      autoscaling.knative.dev/minScale: "1"
+      autoscaling.knative.dev/maxScale: "5"
+      autoscaling.knative.dev/target: "50"
+      autoscaling.knative.dev/metric: "concurrency"
+      autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+      networking.knative.dev/ingress.class: "kourier.ingress.networking.knative.dev"
+    spec:
+      containers:
+        - image: alexpoostotel/billing-frontend:0.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
