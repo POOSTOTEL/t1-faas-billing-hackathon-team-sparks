@@ -22,7 +22,7 @@ spec:
       serviceAccountName: billing-engine-sa
       containers:
         - name: billing-engine
-          image: alexpoostotel/billing-engine:6
+          image: alexpoostotel/billing-engine:8
           ports:
             - containerPort: 8081
           env:
