@@ -3,14 +3,10 @@ FROM node:18 AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 COPY . .
-RUN npm run build
+RUN npm run dev build
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-
-COPY --from=builder /app/index.html /usr/share/nginx/html/
-
 COPY nginx.conf /etc/nginx/conf.d/default.conf
