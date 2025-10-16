@@ -49,4 +49,8 @@ prometheus:
 grafana:
   service:
     type: LoadBalancer
-    port: 3000
+    ports:
+      - name: http-grafana      # ← уникальное имя (не "http-web"!)
+        port: 3000
+        targetPort: 3000
+        protocol: TCP

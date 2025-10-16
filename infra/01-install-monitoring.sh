@@ -11,13 +11,14 @@ fi
 
 echo "Adding Prometheus Community Helm repo..."
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+timeout 100s sleep 200
 helm repo update
-
+timeout 100s sleep 200
 echo "Installing kube-prometheus-stack with Team Sparks values..."
 helm upgrade --install knative prometheus-community/kube-prometheus-stack \
   --namespace observability --create-namespace \
   -f "$VALUES_FILE"
-
+timeout 100s sleep 200
 echo "Applying Knative Serving monitors and dashboards..."
 kubectl apply -f https://raw.githubusercontent.com/knative-extensions/monitoring/main/config/serving-monitors.yaml
 
